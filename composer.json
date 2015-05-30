@@ -1,0 +1,15 @@
+{
+    "name": "dbtk/schema-loader",
+    "description": "Load Database schema from XML",
+    "authors": [
+        {
+            "name": "Joost Faassen",
+            "email": "j.faassen@linkorb.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "doctrine/dbal": "*",
+        "crodas/cli": "*"
+    }
+}
