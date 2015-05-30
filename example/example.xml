@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<schema>
+  <table name="user">
+    <column name="id" type="INT"/>
+    <column name="name" type="VARCHAR(32)"/>
+    <column name="display_name" type="VARCHAR(64)"/>
+    <column name="about" type="LONGTEXT"/>
+    <column name="created_at" type="INT"/>
+    <column name="deleted_at" type="INT"/>
+    <index name="PRIMARY" primary="primary" unique="unique">
+      <column name="id"/>
+    </index>
+  </table>
+</schema>
