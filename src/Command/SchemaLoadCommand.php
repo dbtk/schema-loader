@@ -47,6 +47,15 @@ function SchemaLoadCommand($input, $output)
             $part = explode('(', $type);
             $options = array();
             switch(strtolower($part[0])) {
+                case 'bigint':
+                    $type = 'bigint';
+                    break;
+                    
+                case 'tinyint':
+                    $type = 'boolean';
+                    break;
+                    
+                case 'integer':
                 case 'int':
                     $type= 'integer';
                     break;
@@ -59,10 +68,20 @@ function SchemaLoadCommand($input, $output)
                     $type = 'string';
                     $options['length'] = $part[1];
                     break;
+                case "decimal":
+                    $type = 'string';
+                    $options['length'] = $part[1];
+                    break;
+                case "datetime":
+                    $type = 'datetime';
+                    break;
+                case "date":
+                    $type = 'date';
+                    break;
                 default:
                     throw new RuntimeException("Unsupported type: " . $srctype);
             }
-            //echo "Creating $name of $type - $srctype\n";
+            //echo "Creating $name of `$type` - `$srctype`\n";
 
             $table->addColumn($name, $type, $options);
         }
