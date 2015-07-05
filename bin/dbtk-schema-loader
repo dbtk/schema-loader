@@ -16,5 +16,5 @@ if (!file_exists($baseDir . '/vendor/autoload.php')) {
 }
 $loader = require $baseDir . '/vendor/autoload.php';
 $cli = new crodas\cli\Cli;
-$cli->addDirectory($baseDir . "/src/Command");
+$cli->addDirectory(__DIR__ . "/../src/Command");
 $cli->main();
