@@ -1,8 +1,20 @@
 #!/usr/bin/env php
 <?php
 
-require __DIR__ . "/../vendor/autoload.php";
+$baseDir = __DIR__ . '/..';
+if (!file_exists($baseDir . '/vendor')) {
+    $baseDir = __DIR__ . '/../../../..';
+}
 
+if (!file_exists($baseDir . '/vendor/autoload.php')) {
+    die(
+        'File not found: ' . $baseDir . '/vendor/autoload.php' . PHP_EOL .
+        'You must set up the project dependencies, run the following commands:' . PHP_EOL .
+        'curl -s http://getcomposer.org/installer | php' . PHP_EOL .
+        'php composer.phar install' . PHP_EOL
+    );
+}
+$loader = require $baseDir . '/vendor/autoload.php';
 $cli = new crodas\cli\Cli;
-$cli->addDirectory(__DIR__ . "/../src/Command");
+$cli->addDirectory($baseDir . "/src/Command");
 $cli->main();
