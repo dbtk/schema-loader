@@ -23,26 +23,25 @@ function SchemaLoadCommand($input, $output)
     $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 
     $toSchema = new \Doctrine\DBAL\Schema\Schema();
-    
+
     $x = \Doctrine\DBAL\Types\Type::getTypesMap();
 
-    
+
     $xml = simplexml_load_file($filename);
-    
+
     foreach ($xml->table as $tableNode) {
         //echo ;
         //echo $child->getName() . ": " . $child . "<br>";
         $table = $toSchema->createTable((string)$tableNode['name']);
 
-        /*
-        $table->addColumn('id', 'integer', array("unsigned" => true, 'autoincrement' => true));
-        $table->setPrimaryKey(array("id"));
-        */
+        // $table->addColumn('id', 'integer', array("unsigned" => true, 'autoincrement' => true));
+        // $table->setPrimaryKey(array("id"));
 
         foreach ($tableNode->column as $columnNode) {
             $name = $columnNode['name'];
             $srctype = $columnNode['type'];
-            
+            $autoincrement = ($columnNode['autoincrement'] == 'true');
+
             $type = trim($srctype, ' )');
             $part = explode('(', $type);
             $options = array();
@@ -50,16 +49,16 @@ function SchemaLoadCommand($input, $output)
                 case 'bigint':
                     $type = 'bigint';
                     break;
-                    
+
                 case 'tinyint':
                     $type = 'boolean';
                     break;
-                    
+
                 case 'integer':
                 case 'int':
                     $type= 'integer';
                     break;
-                    
+
                 case "longtext":
                 case "text":
                     $type = 'text';
@@ -82,10 +81,19 @@ function SchemaLoadCommand($input, $output)
                     throw new RuntimeException("Unsupported type: " . $srctype);
             }
             //echo "Creating $name of `$type` - `$srctype`\n";
+            if ($autoincrement) {
+                $options['autoincrement'] = true;
+            }
 
             $table->addColumn($name, $type, $options);
         }
-        
+
+        // only if specified
+        if ((string) $xml['primaryKey']) {
+            $table->setPrimaryKey(
+                [(string) $xml['primaryKey']]
+            );
+        }
     }
 
     $platform = $conn->getDatabasePlatform();
@@ -95,7 +103,7 @@ function SchemaLoadCommand($input, $output)
 
     $sm = $conn->getSchemaManager();
     $fromSchema = $sm->createSchema();
-    
+
     $comparator = new \Doctrine\DBAL\Schema\Comparator();
     $schemaDiff = $comparator->compare($fromSchema, $toSchema);
 
