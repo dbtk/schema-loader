@@ -89,9 +89,9 @@ function SchemaLoadCommand($input, $output)
         }
 
         // only if specified
-        if ((string) $xml['primaryKey']) {
+        if ((string) $tableNode['primaryKey']) {
             $table->setPrimaryKey(
-                [(string) $xml['primaryKey']]
+                [(string) $tableNode['primaryKey']]
             );
         }
     }
