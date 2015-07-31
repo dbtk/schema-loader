@@ -69,8 +69,16 @@ function SchemaLoadCommand($input, $output)
                     $options['length'] = $part[1];
                     break;
                 case "decimal":
-                    $type = 'string';
-                    $options['length'] = $part[1];
+                    $type = 'decimal';
+                    $subpart = explode(',', $part[1]);
+                    $options['precision'] = $subpart[0];
+                    $options['scale'] = $subpart[1];
+                    break;
+                case "float":
+                    $type = 'float';
+                    $subpart = explode(',', $part[1]);
+                    $options['precision'] = $subpart[0];
+                    $options['scale'] = $subpart[1];
                     break;
                 case "datetime":
                     $type = 'datetime';
