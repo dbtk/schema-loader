@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <schema>
-  <table name="user">
-    <column name="id" type="INT"/>
+  <table name="user" primaryKey="id">
+    <column name="id" type="INT" autoincrement="true"/>
     <column name="name" type="VARCHAR(32)"/>
     <column name="display_name" type="VARCHAR(64)"/>
     <column name="about" type="LONGTEXT"/>
