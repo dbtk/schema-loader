@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<schema>
+  <table name="user" primaryKey="id">
+    <column name="id" type="int" autoincrement="true" />
+    <column name="name" type="varchar(32)" />
+    <column name="display_name" type="char(64)" />
+    <column name="about" type="text" />
+    <column name="created_at" type="date" />
+    <column name="deleted_at" type="datetime" />
+  </table>
+</schema>

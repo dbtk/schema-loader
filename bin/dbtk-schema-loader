@@ -1,20 +1,24 @@
 #!/usr/bin/env php
 <?php
 
-$baseDir = __DIR__ . '/..';
-if (!file_exists($baseDir . '/vendor')) {
-    $baseDir = __DIR__ . '/../../../..';
+$filename = __DIR__ . '/../vendor/autoload.php';
+if (!file_exists($filename)) {
+    $filename = __DIR__ . '/../../../autoload.php';
 }
 
-if (!file_exists($baseDir . '/vendor/autoload.php')) {
+if (!file_exists($filename)) {
     die(
-        'File not found: ' . $baseDir . '/vendor/autoload.php' . PHP_EOL .
         'You must set up the project dependencies, run the following commands:' . PHP_EOL .
         'curl -s http://getcomposer.org/installer | php' . PHP_EOL .
         'php composer.phar install' . PHP_EOL
     );
 }
-$loader = require $baseDir . '/vendor/autoload.php';
-$cli = new crodas\cli\Cli;
-$cli->addDirectory(__DIR__ . "/../src/Command");
-$cli->main();
+
+$loader = require $filename;
+
+use Symfony\Component\Console\Application;
+
+$application = new Application('DBTK Schema Loader', '1.1.0');
+$application->setCatchExceptions(true);
+$application->add(new \DbTk\SchemaLoader\Command\LoadCommand());
+$application->run();
