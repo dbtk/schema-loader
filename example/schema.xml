@@ -7,8 +7,5 @@
     <column name="about" type="LONGTEXT"/>
     <column name="created_at" type="INT"/>
     <column name="deleted_at" type="INT"/>
-    <index name="PRIMARY" primary="primary" unique="unique">
-      <column name="id"/>
-    </index>
   </table>
 </schema>

@@ -4,8 +4,11 @@ namespace DbTk\SchemaLoader\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use DbTk\SchemaLoader\Loader\LoaderFactory;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
