@@ -1,16 +1,26 @@
 {
     "name": "dbtk/schema-loader",
     "description": "Load Database schema from XML",
-    "authors": [
-        {
-            "name": "Joost Faassen",
-            "email": "j.faassen@linkorb.com"
-        }
-    ],
+    "authors": [{
+        "name": "Joost Faassen",
+        "email": "j.faassen@linkorb.com"
+    }],
     "bin": ["bin/dbtk-schema-loader"],
     "minimum-stability": "stable",
     "require": {
-        "doctrine/dbal": "*",
-        "crodas/cli": "*"
+        "doctrine/dbal": "~2.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "DbTk\\SchemaLoader\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DbTk\\SchemaLoader\\Tests\\": "tests/"
+        }
     }
 }

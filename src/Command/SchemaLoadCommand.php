@@ -2,140 +2,104 @@
 
 namespace DbTk\SchemaLoader\Command;
 
-use RuntimeException;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+use Doctrine\DBAL\Configuration;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Comparator;
 
 /**
- *  @Cli("schema:load")
- *  @Arg("filename")
- *  @Arg("url")
+ * @author Joost Faassen <j.faassen@linkorb.com>
+ * @author Igor Mukhin <igor.mukhin@gmail.com>
  */
-function SchemaLoadCommand($input, $output)
+class SchemaLoadCommand extends Command
 {
-    $url = $input->getArgument('url');
-    $filename = $input->getArgument('filename');
-    $apply = true;
-
-    $config = new \Doctrine\DBAL\Configuration();
-    $connectionParams = array(
-        'url' => $url
-    );
-    echo("Loading `$filename` into `$url`\n");
-    $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
-
-    $toSchema = new \Doctrine\DBAL\Schema\Schema();
-
-    $x = \Doctrine\DBAL\Types\Type::getTypesMap();
-
-
-    $xml = simplexml_load_file($filename);
-
-    foreach ($xml->table as $tableNode) {
-        //echo ;
-        //echo $child->getName() . ": " . $child . "<br>";
-        $table = $toSchema->createTable((string)$tableNode['name']);
-
-        // $table->addColumn('id', 'integer', array("unsigned" => true, 'autoincrement' => true));
-        // $table->setPrimaryKey(array("id"));
-
-        foreach ($tableNode->column as $columnNode) {
-            $name = $columnNode['name'];
-            $srctype = $columnNode['type'];
-            $autoincrement = ($columnNode['autoincrement'] == 'true');
-
-            $type = trim($srctype, ' )');
-            $part = explode('(', $type);
-            $options = array();
-            switch(strtolower($part[0])) {
-                case 'bigint':
-                    $type = 'bigint';
-                    break;
-
-                case 'tinyint':
-                    $type = 'boolean';
-                    break;
-
-                case 'integer':
-                case 'int':
-                    $type= 'integer';
-                    break;
-
-                case "longtext":
-                case "text":
-                    $type = 'text';
-                    break;
-                case "varchar":
-                    $type = 'string';
-                    $options['length'] = $part[1];
-                    break;
-                case "decimal":
-                    $type = 'decimal';
-                    $subpart = explode(',', $part[1]);
-                    $options['precision'] = $subpart[0];
-                    $options['scale'] = $subpart[1];
-                    break;
-                case "float":
-                    $type = 'float';
-                    $subpart = explode(',', $part[1]);
-                    $options['precision'] = $subpart[0];
-                    $options['scale'] = $subpart[1];
-                    break;
-                case "datetime":
-                    $type = 'datetime';
-                    break;
-                case "date":
-                    $type = 'date';
-                    break;
-                default:
-                    throw new RuntimeException("Unsupported type: " . $srctype);
-            }
-            //echo "Creating $name of `$type` - `$srctype`\n";
-            if ($autoincrement) {
-                $options['autoincrement'] = true;
-            }
-
-            $table->addColumn($name, $type, $options);
-        }
-
-        // only if specified
-        if ((string) $tableNode['primaryKey']) {
-            $table->setPrimaryKey(
-                [(string) $tableNode['primaryKey']]
-            );
-        }
+    /**
+     * {@inheritdoc}
+     */
+    protected function configure()
+    {
+        $this
+            ->setName('schema:load')
+            ->setDescription('Load Alice fixture data into database')
+            ->addArgument(
+                'filename',
+                InputArgument::REQUIRED,
+                'Schema filename'
+            )
+            ->addArgument(
+                'url',
+                InputArgument::REQUIRED,
+                'Database connection details'
+            )
+            ->addOption(
+                'apply',
+                null,
+                InputOption::VALUE_NONE,
+                'Apply allow you to synchronise schema'
+            )
+        ;
     }
 
-    $platform = $conn->getDatabasePlatform();
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(InputInterface $input, OutputInterface $output)
+    {
+        $url = $input->getArgument('url');
+        $filename  = $input->getArgument('filename');
+        $apply = $input->getOption('apply');
 
-    //$queries = $toSchema->toSql($platform); // get queries to create this schema from zero.
-    //print_r($queries);
+        $loader = LoaderFactory::getInstance()->getLoader($filename);
+        $toSchema = $loader->loadSchema($filename);
 
-    $sm = $conn->getSchemaManager();
-    $fromSchema = $sm->createSchema();
+        $config = new Configuration();
+        $connectionParams = array(
+            'url' => $url
+        );
+        $connection = DriverManager::getConnection($connectionParams, $config);
 
-    $comparator = new \Doctrine\DBAL\Schema\Comparator();
-    $schemaDiff = $comparator->compare($fromSchema, $toSchema);
+        $output->writeln(sprintf(
+            'Loading file `%s` into database `%s`',
+            $filename,
+            $url
+        ));
 
-    //$queries = $schemaDiff->toSql($myPlatform); // queries to get from one to another schema.
-    $queries = $schemaDiff->toSaveSql($platform);
+        $schemaManager = $connection->getSchemaManager();
+        $fromSchema = $schemaManager->createSchema();
 
-    //$queries = $fromSchema->getMigrateToSql($toSchema, $platform);
+        $comparator = new Comparator();
+        $schemaDiff = $comparator->compare($fromSchema, $toSchema);
 
-    //print_r($sql);
-    if (count($queries)>0) {
-        if (!$apply) {
-            echo "CHANGES: The following SQL statements need to be executed to synchronise the schema (use --apply)\n";
+        $platform = $connection->getDatabasePlatform();
+        $queries = $schemaDiff->toSaveSql($platform);
+
+        if (!count($queries)) {
+            $output->writeln("No schema changes required");
+            return;
+        }
+
+        if ($apply) {
+            $output->writeln("APPLYING...");
             foreach ($queries as $query) {
-                echo "SQL: " . $query . "\n";
-                //$stmt = $conn->query($query);
+                $output->writeln(sprintf(
+                    'Running: %s',
+                    $query
+                ));
+
+                $stmt = $connection->query($query);
             }
         } else {
+            $output->writeln("CHANGES: The following SQL statements need to be executed to synchronise the schema (use --apply)");
+
             foreach ($queries as $query) {
-                echo "RUNNING: " . $query . "\n";
-                $stmt = $conn->query($query);
+                $output->writeln($query);
             }
         }
 
-    } else {
-        echo "No schema changes required\n";
     }
 }
