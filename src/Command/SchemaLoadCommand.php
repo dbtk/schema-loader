@@ -37,7 +37,7 @@ class SchemaLoadCommand extends Command
             ->addArgument(
                 'url',
                 InputArgument::REQUIRED,
-                'Database connection details'
+                'Database connection details. You can use PDO url or just database name.'
             )
             ->addOption(
                 'apply',

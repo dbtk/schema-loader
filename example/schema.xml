@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
 <schema>
-  <table name="user" primaryKey="id">
-    <column name="id" type="INT" autoincrement="true"/>
-    <column name="name" type="VARCHAR(32)"/>
-    <column name="display_name" type="VARCHAR(64)"/>
-    <column name="about" type="LONGTEXT"/>
-    <column name="created_at" type="INT"/>
-    <column name="deleted_at" type="INT"/>
+  <table name="user">
+    <column name="id" type="integer" unsigned="true" autoincrement="true" />
+    <column name="username" type="string" length="32" />
+    <column name="firstname" type="string" length="32" />
+    <column name="lastname" type="string" length="32" />
+    <column name="password" type="string" length="32" />
+    <column name="email" type="string" length="32" />
+
+    <index name="primary" primary="true" columns="id" />
   </table>
 </schema>

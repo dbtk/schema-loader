@@ -7,78 +7,163 @@ use DbTk\SchemaLoader\Exception\UnsupportedFieldTypeException;
 
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 
 /**
  * @author Igor Mukhin <igor.mukhin@gmail.com>
  */
 abstract class BaseLoader
 {
-    protected $typesMap = array(
-        'bigint'=>'bigint',
-        'tinyint'=>'boolean',
-        'integer'=>'integer',
-        'int'=>'integer',
-        'longtext'=>'text',
-        'text'=>'text',
-        'varchar'=>'string',
-        'char'=>'string',
-        'decimal'=>'decimal',
-        'float'=>'float',
-        'datetime'=>'datetime',
-        'date'=>'date'
+    protected $extraOptions = array(
+        'default'=>'typeaware',
+        'notnull'=>'boolean',
+        'length'=>'integer',
+        'precision'=>'integer',
+        'scale'=>'integer',
+        'fixed'=>'boolean',
+        'unsigned'=>'boolean',
+        'autoincrement'=>'boolean',
+        'comment'=>'string'
     );
 
     /**
-     * @param  string $type
-     * @return boolean
+     * @param  array $columns
+     * @return Column[]
      */
-    public function isTypeSupported($type)
+    public function loadColumns($columns)
     {
-        return isset($this->typesMap[$type]);
+        return array_map(function($columnNode){
+            return $this->loadColumn($columnNode);
+        }, $columns);
     }
 
     /**
-     * Apply extra options for special types.
-     *
-     * @param  Column $column
-     * @param  string $extra
+     * @param  array  $column
+     * @return Column
      */
-    public function applyType(Column $column, $type, $extra)
+    public function loadColumn($columnNode)
     {
-        switch(strtolower($type)) {
-            case "varchar":
-            case "char":
-                $column
-                    ->setLength($extra)
-                ;
-                break;
+        $type = trim($columnNode['type']);
 
-            case "decimal":
-            case "float":
-                list($precision, $scale) = explode(',', $extra);
-                $column
-                    ->setPrecision($precision)
-                    ->setScale($scale)
-                ;
-                break;
-        }
-    }
-
-    /**
-     * @param  string $type
-     * @return Type
-     *
-     * @throws UnsupportedFieldTypeException
-     */
-    public function getType($type)
-    {
-        $type = strtolower($type);
-        if (!$this->isTypeSupported($type)) {
+        if (!Type::hasType($type)) {
             throw new UnsupportedFieldTypeException($type);
         }
 
-        $actialType = $this->typesMap[$type];
+        $options = $this->getColumnExtraOptions($type, $columnNode);
+        return new Column((string)$columnNode['name'], Type::getType($type), $options);
+    }
 
-        return Type::getType($actialType);
+    /**
+     * @param  string $type
+     * @param  string $columnNode
+     * @return array
+     */
+    public function getColumnExtraOptions($type, $columnNode)
+    {
+        $options = array();
+        foreach ($this->extraOptions as $optionName=>$optionType) {
+            if (isset($columnNode[$optionName])) {
+                $options[$optionName] = $this->convertColumnOptionValue((string)$columnNode[$optionName], $type, $optionType);
+            }
+        }
+        return $options;
+    }
+
+    /**
+     * @param  string $optionValue
+     * @param  string $type
+     * @param  string $optionType
+     * @return mixed
+     */
+    protected function convertColumnOptionValue($optionValue, $type, $optionType)
+    {
+        switch ($optionType) {
+            case 'boolean':
+                return $optionValue === 'true' ? true : false;
+
+            case 'integer':
+                return (int)$optionValue;
+
+            case 'string':
+                return (string)$optionValue;
+
+            case 'typeaware':
+                if ('null' == $optionValue) {
+                    return NULL;
+                }
+
+                switch ($type) {
+                    case 'tinyint':
+                    case 'integer':
+                    case 'bigint':
+                    case 'float':
+                    case 'decimal':
+                        return (int)$optionValue;
+
+                    case 'boolean':
+                        return $optionValue === 'true' ? true : false;
+
+                    default:
+                        return (string)$optionValue;
+                }
+
+            default:
+                throw new RuntimeException(sprintf("Uknown optionType '%s'", $optionType));
+        }
+    }
+
+    /**
+     * @param  array $indexes
+     * @return Index[]
+     */
+    public function loadIndexes($indexes)
+    {
+        return array_map(function($indexNode){
+            return $this->loadIndex($indexNode);
+        }, $indexes);
+    }
+
+    /**
+     * @param  array $indexNode
+     * @return Index
+     */
+    public function loadIndex($indexNode)
+    {
+        $indexName = (string) $indexNode['name'];
+        $columns = explode(',', (string) $indexNode['columns']);
+        $isUnique = isset($indexNode['unique']) && 'true' === (string) $indexNode['unique'] ? true : false;
+        $isPrimary = isset($indexNode['primary']) && 'true' === (string) $indexNode['primary'] ? true : false;
+
+        return new Index($indexName, $columns, $isUnique, $isPrimary);
+    }
+
+    /**
+     * @param  array $constraints
+     * @return ForeignKeyConstraint[]
+     */
+    public function loadContstraints($constraints)
+    {
+        return array_map(function($constraintNode){
+            return $this->loadContstraint($constraintNode);
+        }, $constraints);
+    }
+
+    /**
+     * @param  array $constraintNode
+     * @return ForeignKeyConstraint
+     */
+    public function loadContstraint($constraintNode)
+    {
+        $name = null;
+        if (isset($constraintNode['name'])) {
+            $name = (string) $constraintNode['name'];
+        }
+
+        $columns = explode(',', (string) $constraintNode['columns']);
+        $foreignTable = (string) $constraintNode['foreign-table'];
+        $foreignColumns = explode(',', (string) $constraintNode['foreign-columns']);
+
+        return new ForeignKeyConstraint($columns, $foreignTable, $foreignColumns, $name);
     }
 }

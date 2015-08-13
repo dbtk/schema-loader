@@ -7,6 +7,8 @@ use DbTk\SchemaLoader\Loader\LoaderFactory;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Types\Type;
 
 /**
@@ -35,15 +37,37 @@ class LoaderFactoryTest extends \PHPUnit_Framework_TestCase
         $loadedSchema = $loader->loadSchema($this->filename);
         $this->assertInstanceOf('Doctrine\DBAL\Schema\Schema', $loadedSchema);
 
-        $loadedTable = $loadedSchema->getTable('user');
+        $userTable = $loadedSchema->getTable('user');
 
-        $this->assertNotNull($loadedTable->getPrimaryKey());
+        // Check columns
+        $this->assertEquals($userTable->getColumn('id'), new Column('id', Type::getType('integer'), array('unsigned'=>true, 'autoincrement'=>true)));
+        $this->assertEquals($userTable->getColumn('name'), new Column('name', Type::getType('string'), array('length'=>32)));
+        $this->assertEquals($userTable->getColumn('about'), new Column('about', Type::getType('text'), array('default'=>null)));
+        $this->assertEquals($userTable->getColumn('age'), new Column('age', Type::getType('smallint'), array('unsigned'=>true)));
+        $this->assertEquals($userTable->getColumn('projects_done'), new Column('projects_done', Type::getType('integer'), array('unsigned'=>true, 'default'=>0)));
+        $this->assertEquals($userTable->getColumn('profile_views'), new Column('profile_views', Type::getType('bigint'), array('unsigned'=>true, 'default'=>0)));
+        $this->assertEquals($userTable->getColumn('hourly_rate'), new Column('hourly_rate', Type::getType('decimal'), array('scale'=>6, 'precision'=>2, 'unsigned'=>true, 'default'=>0)));
+        $this->assertEquals($userTable->getColumn('total_earned'), new Column('total_earned', Type::getType('float'), array('scale'=>10, 'precision'=>2, 'unsigned'=>true, 'default'=>0)));
+        $this->assertEquals($userTable->getColumn('created_at'), new Column('created_at', Type::getType('datetime'), array('default'=>"2000-01-01 12:01:01")));
+        $this->assertEquals($userTable->getColumn('born_at'), new Column('born_at', Type::getType('date'), array('default'=>"2000-01-01")));
+        $this->assertEquals($userTable->getColumn('workday_starts'), new Column('workday_starts', Type::getType('time'), array('default'=>"9:00")));
+        $this->assertEquals($userTable->getColumn('workday_ends'), new Column('workday_ends', Type::getType('time'), array('default'=>"18:00")));
+        $this->assertEquals($userTable->getColumn('last_logged_in'), new Column('last_logged_in', Type::getType('datetimetz'), array('default'=>"2000-01-01 12:01:01T0200")));
+        $this->assertEquals($userTable->getColumn('enabled'), new Column('enabled', Type::getType('boolean'), array('default'=>false)));
 
-        $this->assertEquals($loadedTable->getColumn('id'), new Column('id', Type::getType('integer'), array('autoincrement'=>true)));
-        $this->assertEquals($loadedTable->getColumn('name'), new Column('name', Type::getType('string'), array('length'=>32)));
-        $this->assertEquals($loadedTable->getColumn('display_name'), new Column('display_name', Type::getType('string'), array('length'=>64)));
-        $this->assertEquals($loadedTable->getColumn('about'), new Column('about', Type::getType('text')));
-        $this->assertEquals($loadedTable->getColumn('created_at'), new Column('created_at', Type::getType('date')));
-        $this->assertEquals($loadedTable->getColumn('deleted_at'), new Column('deleted_at', Type::getType('datetime')));
+        // Check indexes
+        $this->assertNotNull($userTable->getPrimaryKey());
+        $this->assertEquals($userTable->getIndexes(), array(
+            'primary'=>new Index('primary', array('id'), false, true),
+            'guid'=>new Index('guid', array('guid'), true, false)
+        ));
+
+        // Check constraints
+        $projectTable = $loadedSchema->getTable('project');
+        $projectConstraint = $projectTable->getForeignKeys()['fk_users_project'];
+        $this->assertEquals($projectConstraint->getLocalTableName(), 'project');
+        $this->assertEquals($projectConstraint->getForeignTableName(), 'user');
+        $this->assertEquals($projectConstraint->getLocalColumns(), array('user_id'));
+        $this->assertEquals($projectConstraint->getForeignColumns(), array('id'));
     }
 }
