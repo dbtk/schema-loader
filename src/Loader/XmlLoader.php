@@ -46,8 +46,8 @@ class XmlLoader extends BaseLoader implements LoaderInterface
      */
     public function loadTables($tables)
     {
-        return array_map(function($tableNode){
-            $columns = $this->loadColumns($tableNode->xpath('//column'));
+        return array_map(function ($tableNode) {
+            $columns = $this->loadColumns($tableNode->xpath('./column'));
             $table = new Table((string)$tableNode['name'], $columns);
 
             if ((string) $tableNode['primaryKey']) {
@@ -55,7 +55,6 @@ class XmlLoader extends BaseLoader implements LoaderInterface
                     [(string) $tableNode['primaryKey']]
                 );
             }
-
             return $table;
         }, $tables);
     }
@@ -66,7 +65,7 @@ class XmlLoader extends BaseLoader implements LoaderInterface
      */
     public function loadColumns($columns)
     {
-        return array_map(function($columnNode){
+        return array_map(function ($columnNode) {
             // var_dump($columnNode);
             return $this->loadColumn($columnNode);
         }, $columns);
