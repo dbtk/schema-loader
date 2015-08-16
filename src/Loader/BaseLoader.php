@@ -72,8 +72,9 @@ abstract class BaseLoader
      */
     public function getType($type)
     {
+        $type = strtolower($type);
         if (!$this->isTypeSupported($type)) {
-            throw new UnsupportedFieldTypeException($srctype);
+            throw new UnsupportedFieldTypeException($type);
         }
 
         $actialType = $this->typesMap[$type];
