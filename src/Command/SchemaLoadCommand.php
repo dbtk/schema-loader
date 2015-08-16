@@ -2,13 +2,14 @@
 
 namespace DbTk\SchemaLoader\Command;
 
+use DbTk\SchemaLoader\Loader\LoaderFactory;
+use LinkORB\Component\DatabaseManager\DatabaseManager;
+
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-
-use DbTk\SchemaLoader\Loader\LoaderFactory;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
@@ -37,7 +38,7 @@ class SchemaLoadCommand extends Command
             ->addArgument(
                 'url',
                 InputArgument::REQUIRED,
-                'Database connection details'
+                'Database connection details. You can use PDO url or just database name.'
             )
             ->addOption(
                 'apply',
@@ -61,8 +62,10 @@ class SchemaLoadCommand extends Command
         $toSchema = $loader->loadSchema($filename);
 
         $config = new Configuration();
+        $dbmanager = new DatabaseManager();
+
         $connectionParams = array(
-            'url' => $url
+            'url' => $dbmanager->getUrlByDatabaseName($url)
         );
         $connection = DriverManager::getConnection($connectionParams, $config);
 

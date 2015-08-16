@@ -5,19 +5,25 @@ Load database schema from an XML file.
 
 ## Usage
 
-You can load schema to database by PDO url:
+You can load schema to database by:
 
-```bash
-./bin/dbtk-schema-loader schema:load example/schema.xml mysql://username:password@localhost/database_name
+### Database url
+
+A full URL containing username, password, hostname and dbname:
+
+```
+./bin/dbtk-schema-loader schema:load example/schema.xml mysql://username:password@localhost/dbname
 ```
 
-or by database name:
+### Just a dbname
+
+In this case [linkorb/database-manager](https://github.com/linkorb/database-manager) is used for loading database connection details (server, username, password, etc) from .conf files (read project readme for more details).
+
+In a nutshell - you must have a `dbname.conf` file at `/share/config/database/` as described at [database-manager's documentation](https://github.com/linkorb/database-manager#database-configuration-files).
 
 ```bash
-./bin/dbtk-schema-loader schema:load example/schema.xml database_name
+./bin/dbtk-schema-loader schema:load example/schema.xml dbname
 ```
-
-In this case you must have a `database_name.conf` file at `/share/config/database/` as described at [database-manager's documentation](https://github.com/linkorb/database-manager#database-configuration-files).
 
 ## License
 Please refer to the included LICENSE file

@@ -18,7 +18,7 @@ $loader = require $filename;
 
 use Symfony\Component\Console\Application;
 
-$application = new Application('DBTK Schema Loader', '1.1.1');
+$application = new Application('DBTK Schema Loader', '2.0.0');
 $application->setCatchExceptions(true);
 $application->add(new \DbTk\SchemaLoader\Command\SchemaLoadCommand());
 $application->run();

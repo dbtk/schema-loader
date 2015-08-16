@@ -7,6 +7,7 @@ use DbTk\SchemaLoader\Exception\FileNotFoundException;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\Index;
 
 /**
  * @author Joost Faassen <j.faassen@linkorb.com>
@@ -46,51 +47,15 @@ class XmlLoader extends BaseLoader implements LoaderInterface
      */
     public function loadTables($tables)
     {
-        return array_map(function ($tableNode) {
-            $columns = $this->loadColumns($tableNode->xpath('./column'));
-            $table = new Table((string)$tableNode['name'], $columns);
+        return array_map(function($tableNode){
+            $columns = $this->loadColumns($tableNode->xpath('.//column'));
+            $indexes = $this->loadIndexes($tableNode->xpath('.//index'));
+            $constraints = $this->loadContstraints($tableNode->xpath('.//constraint'));
 
-            if ((string) $tableNode['primaryKey']) {
-                $table->setPrimaryKey(
-                    [(string) $tableNode['primaryKey']]
-                );
-            }
+            $table = new Table((string)$tableNode['name'], $columns, $indexes, $constraints);
+
             return $table;
         }, $tables);
     }
 
-    /**
-     * @param  array $columns
-     * @return Column[]
-     */
-    public function loadColumns($columns)
-    {
-        return array_map(function ($columnNode) {
-            // var_dump($columnNode);
-            return $this->loadColumn($columnNode);
-        }, $columns);
-    }
-
-    /**
-     * @param  array  $column
-     * @return Column
-     */
-    public function loadColumn($columnNode)
-    {
-        // @todo Refactor that line - its ugly little bit
-        $extra = '';
-        $type = trim($columnNode['type'], ' )');
-        if (false !== strpos($type, '(')) {
-            list($type, $extra) = explode('(', $type);
-        }
-
-        $column = new Column($columnNode['name'], $this->getType($type));
-        $this->applyType($column, $type, $extra);
-
-        if (strtolower($columnNode['autoincrement']) == 'true') {
-            $column->setAutoincrement(true);
-        }
-
-        return $column;
-    }
 }

@@ -1,11 +1,37 @@
 <?xml version="1.0"?>
 <schema>
-  <table name="user" primaryKey="id">
-    <column name="id" type="int" autoincrement="true" />
-    <column name="name" type="varchar(32)" />
-    <column name="display_name" type="char(64)" />
+  <table name="user"><!-- primaryKey="id"-->
+    <column name="id" type="integer" unsigned="true" autoincrement="true" />
+    <column name="name" type="string" length="32" />
     <column name="about" type="text" />
-    <column name="created_at" type="date" />
-    <column name="deleted_at" type="datetime" />
+    <column name="age" type="smallint" unsigned="true" />
+    <column name="projects_done" type="integer" unsigned="true" default="0" />
+    <column name="profile_views" type="bigint" unsigned="true" default="0" />
+    <column name="hourly_rate" type="decimal" unsigned="true" scale="6" precision="2" default="0" />
+    <column name="total_earned" type="float" unsigned="true" scale="10" precision="2" default="0" />
+    <column name="created_at" type="datetime" default="2000-01-01 12:01:01" />
+    <column name="born_at" type="date" default="2000-01-01" />
+    <column name="workday_starts" type="time" default="9:00" />
+    <column name="workday_ends" type="time" default="18:00" />
+    <column name="last_logged_in" type="datetimetz" default="2000-01-01 12:01:01T0200" />
+    <column name="enabled" type="boolean" default="false" />
+
+    <column name="skills" type="array" />
+    <column name="bad_habits" type="simple_array" />
+    <column name="resume" type="json_array" />
+    <column name="photo" type="binary" />
+    <column name="video" type="blob" />
+    <column name="guid" type="guid" />
+
+    <index name="primary" primary="true" columns="id" />
+    <index name="guid" unique="true" columns="guid" />
+  </table>
+
+  <table name="project">
+    <column name="id" type="integer" unsigned="true" autoincrement="true" />
+    <column name="user_id" type="integer" unsigned="true" />
+    <column name="name" type="string" length="32" />
+
+    <constraint name="fk_users_project" columns="user_id" foreign-table="user" foreign-columns="id" />
   </table>
 </schema>
