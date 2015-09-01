@@ -13,6 +13,7 @@
         "linkorb/database-manager": "~2.0"
     },
     "require-dev": {
+        "linkorb/conventions-checker": "~1.0",
         "phpunit/phpunit": "~4.6"
     },
     "autoload": {
