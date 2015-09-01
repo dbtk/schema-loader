@@ -7,14 +7,14 @@ namespace DbTk\SchemaLoader\Exception;
  */
 class FileNotFoundException extends RuntimeException
 {
-	/**
-	 * @param string $path
-	 */
+    /**
+     * @param string $path
+     */
     public function __construct($path)
     {
         parent::__construct(sprintf(
-        	"File '%s' doesn't exists.",
-        	$path
+            "File '%s' doesn't exists.",
+            $path
         ));
     }
 }

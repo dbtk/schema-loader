@@ -4,7 +4,6 @@ namespace DbTk\SchemaLoader\Loader;
 
 use DbTk\SchemaLoader\Exception\FileNotFoundException;
 use DbTk\SchemaLoader\Exception\UnsupportedFieldTypeException;
-
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
@@ -33,7 +32,7 @@ abstract class BaseLoader
      */
     public function loadColumns($columns)
     {
-        return array_map(function($columnNode){
+        return array_map(function ($columnNode) {
             return $this->loadColumn($columnNode);
         }, $columns);
     }
@@ -90,7 +89,7 @@ abstract class BaseLoader
 
             case 'typeaware':
                 if ('null' == $optionValue) {
-                    return NULL;
+                    return null;
                 }
 
                 switch ($type) {
@@ -119,7 +118,7 @@ abstract class BaseLoader
      */
     public function loadIndexes($indexes)
     {
-        return array_map(function($indexNode){
+        return array_map(function ($indexNode) {
             return $this->loadIndex($indexNode);
         }, $indexes);
     }
@@ -144,7 +143,7 @@ abstract class BaseLoader
      */
     public function loadContstraints($constraints)
     {
-        return array_map(function($constraintNode){
+        return array_map(function ($constraintNode) {
             return $this->loadContstraint($constraintNode);
         }, $constraints);
     }

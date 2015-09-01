@@ -3,7 +3,6 @@
 namespace DbTk\SchemaLoader\Tests;
 
 use DbTk\SchemaLoader\Loader\LoaderFactory;
-
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;

@@ -3,7 +3,6 @@
 namespace DbTk\SchemaLoader\Loader;
 
 use DbTk\SchemaLoader\Exception\FileNotFoundException;
-
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;
@@ -15,7 +14,6 @@ use Doctrine\DBAL\Schema\Index;
  */
 class XmlLoader extends BaseLoader implements LoaderInterface
 {
-
     /**
      * {@inheritdoc}
      */
@@ -47,7 +45,7 @@ class XmlLoader extends BaseLoader implements LoaderInterface
      */
     public function loadTables($tables)
     {
-        return array_map(function($tableNode){
+        return array_map(function ($tableNode) {
             $columns = $this->loadColumns($tableNode->xpath('.//column'));
             $indexes = $this->loadIndexes($tableNode->xpath('.//index'));
             $constraints = $this->loadContstraints($tableNode->xpath('.//constraint'));
@@ -57,5 +55,4 @@ class XmlLoader extends BaseLoader implements LoaderInterface
             return $table;
         }, $tables);
     }
-
 }

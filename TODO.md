@@ -1,3 +1,0 @@
-- Validate values:
-  - boolean can be only true and false
-  -

@@ -4,13 +4,11 @@ namespace DbTk\SchemaLoader\Command;
 
 use DbTk\SchemaLoader\Loader\LoaderFactory;
 use LinkORB\Component\DatabaseManager\DatabaseManager;
-
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
@@ -106,6 +104,5 @@ class SchemaLoadCommand extends Command
                 $output->writeln($query);
             }
         }
-
     }
 }

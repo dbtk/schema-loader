@@ -1,9 +1,13 @@
 {
     "name": "dbtk/schema-loader",
     "description": "Load Database schema from XML",
+    "keywords": ["linkorb"],
     "authors": [{
         "name": "Joost Faassen",
         "email": "j.faassen@linkorb.com"
+    },{
+        "name": "LinkORB Engineering Team",
+        "email": "engineering@linkorb.com"
     }],
     "bin": ["bin/dbtk-schema-loader"],
     "minimum-stability": "stable",

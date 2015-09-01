@@ -4,7 +4,6 @@ namespace DbTk\SchemaLoader\Loader;
 
 use DbTk\SchemaLoader\Loader\LoaderInterface;
 use DbTk\SchemaLoader\Loader\XmlLoader;
-
 use DbTk\SchemaLoader\Exception\UnsupportedSchemaFileException;
 
 /**

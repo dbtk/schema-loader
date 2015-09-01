@@ -7,5 +7,4 @@ namespace DbTk\SchemaLoader\Exception;
  */
 class RuntimeException extends \RuntimeException
 {
-
 }
