@@ -55,6 +55,13 @@ class LoaderFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($userTable->getColumn('last_logged_in'), new Column('last_logged_in', Type::getType('datetimetz'), array('default'=>"2000-01-01 12:01:01T0200")));
         $this->assertEquals($userTable->getColumn('enabled'), new Column('enabled', Type::getType('boolean'), array('default'=>false)));
 
+        $this->assertEquals($userTable->getColumn('skills'), new Column('skills', Type::getType('array'), array('notnull'=>false, 'default'=>null)));
+        $this->assertEquals($userTable->getColumn('bad_habits'), new Column('bad_habits', Type::getType('simple_array')));
+        $this->assertEquals($userTable->getColumn('resume'), new Column('resume', Type::getType('json_array')));
+        $this->assertEquals($userTable->getColumn('photo'), new Column('photo', Type::getType('binary')));
+        $this->assertEquals($userTable->getColumn('video'), new Column('video', Type::getType('blob')));
+        $this->assertEquals($userTable->getColumn('guid'), new Column('guid', Type::getType('guid')));
+
         // Check indexes
         $this->assertNotNull($userTable->getPrimaryKey());
         $this->assertEquals($userTable->getIndexes(), array(

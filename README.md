@@ -25,6 +25,15 @@ In a nutshell - you must have a `dbname.conf` file at `/share/config/database/` 
 ./bin/dbtk-schema-loader schema:load example/schema.xml dbname
 ```
 
+### Examples
+
+See `example/schema.xml` or `/tests/fixtures/schema.xml`.
+
+### Notices
+
+- Don't forget to use `notnull="false"` for optional fields.
+- Don't use `primaryKey="id"` in table definition - in version `~2.0` indexes have new format.
+
 ## License
 Please refer to the included LICENSE file
 
