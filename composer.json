@@ -1,7 +1,8 @@
 {
     "name": "dbtk/schema-loader",
     "description": "Load Database schema from XML",
-    "keywords": ["linkorb"],
+    "keywords": ["Database", "schema", "loader", "xml", "linkorb"],
+    "license": "MIT",
     "authors": [{
         "name": "Joost Faassen",
         "email": "j.faassen@linkorb.com"
@@ -17,8 +18,13 @@
         "linkorb/database-manager": "~2.0"
     },
     "require-dev": {
-        "linkorb/conventions-checker": "~1.0",
-        "phpunit/phpunit": "~4.6"
+        "phpunit/phpunit": "~4.6",
+        "linkorb/conventions-checker": "~1.1"
+    },
+    "extra": {
+        "grumphp": {
+            "config-default-path": "vendor/linkorb/conventions-checker/config/lib/grumphp.yml"
+        }
     },
     "autoload": {
         "psr-4": {
