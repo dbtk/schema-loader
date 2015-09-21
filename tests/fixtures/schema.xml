@@ -32,6 +32,6 @@
     <column name="user_id" type="integer" unsigned="true" />
     <column name="name" type="string" length="32" />
 
-    <constraint name="fk_users_project" columns="user_id" foreign-table="user" foreign-columns="id" />
+    <constraint name="fk_users_project" columns="user_id" foreign-table="user" foreign-columns="id" onDelete="SET NULL" onUpdate="CASCADE" />
   </table>
 </schema>

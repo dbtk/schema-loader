@@ -163,6 +163,14 @@ abstract class BaseLoader
         $foreignTable = (string) $constraintNode['foreign-table'];
         $foreignColumns = explode(',', (string) $constraintNode['foreign-columns']);
 
-        return new ForeignKeyConstraint($columns, $foreignTable, $foreignColumns, $name);
+        $options = array();
+        if (isset($constraintNode['onDelete'])) {
+            $options['onDelete'] = (string) $constraintNode['onDelete'];
+        }
+        if (isset($constraintNode['onUpdate'])) {
+            $options['onUpdate'] = (string) $constraintNode['onUpdate'];
+        }
+
+        return new ForeignKeyConstraint($columns, $foreignTable, $foreignColumns, $name, $options);
     }
 }

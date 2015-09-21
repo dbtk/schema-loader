@@ -75,5 +75,7 @@ class LoaderFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($projectConstraint->getForeignTableName(), 'user');
         $this->assertEquals($projectConstraint->getLocalColumns(), array('user_id'));
         $this->assertEquals($projectConstraint->getForeignColumns(), array('id'));
+        $this->assertEquals($projectConstraint->onUpdate(), 'CASCADE');
+        $this->assertEquals($projectConstraint->onDelete(), 'SET NULL');
     }
 }
