@@ -13,13 +13,15 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Comparator;
+use Doctrine\DBAL\Exception\ConnectionException;
+use PDO;
+use RuntimeException;
 
 /**
  * @author Joost Faassen <j.faassen@linkorb.com>
  * @author Igor Mukhin <igor.mukhin@gmail.com>
  */
-class SchemaLoadCommand extends Command
-{
+class SchemaLoadCommand extends Command {
     /**
      * {@inheritdoc}
      */
@@ -27,7 +29,7 @@ class SchemaLoadCommand extends Command
     {
         $this
             ->setName('schema:load')
-            ->setDescription('Load Alice fixture data into database')
+            ->setDescription('Load database schema into database')
             ->addArgument(
                 'filename',
                 InputArgument::REQUIRED,
@@ -36,13 +38,13 @@ class SchemaLoadCommand extends Command
             ->addArgument(
                 'url',
                 InputArgument::REQUIRED,
-                'Database connection details. You can use PDO url or just database name.'
+                'Database connection details. You can use PDO url or just a database name.'
             )
             ->addOption(
                 'apply',
                 null,
                 InputOption::VALUE_NONE,
-                'Apply allow you to synchronise schema'
+                'Apply allow you to apply changes'
             )
         ;
     }
@@ -55,6 +57,38 @@ class SchemaLoadCommand extends Command
         $url = $input->getArgument('url');
         $filename  = $input->getArgument('filename');
         $apply = $input->getOption('apply');
+        
+        
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $user = parse_url($url, PHP_URL_USER);
+        $pass = parse_url($url, PHP_URL_PASS);
+        $host = parse_url($url, PHP_URL_HOST);
+        $port = parse_url($url, PHP_URL_PORT);
+        $dbname = substr(parse_url($url, PHP_URL_PATH), 1);
+        if (!$port) {
+            $port = 3306;
+        }
+        $dsn = sprintf(
+            '%s:host=%s;port=%d',
+            $scheme,
+            $host,
+            $port
+        );
+        //echo $dsn;exit();
+        try {
+            $pdo = new PDO($dsn, $user, $pass);
+        } catch (\Exception $e) {
+            throw new RuntimeException("Can't connect to server with provided address and credentials");
+        }
+        
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $dbname . "'");
+        if (!$stmt->fetchColumn()) {
+            $output->writeln("Creating database");
+            $stmt = $pdo->query("CREATE DATABASE " . $dbname . "");
+        } else {
+            $output->writeln("Database exists...");
+        }
 
         $loader = LoaderFactory::getInstance()->getLoader($filename);
         $toSchema = $loader->loadSchema($filename);
@@ -65,6 +99,8 @@ class SchemaLoadCommand extends Command
         $connectionParams = array(
             'url' => $dbmanager->getUrlByDatabaseName($url)
         );
+        
+        
         $connection = DriverManager::getConnection($connectionParams, $config);
 
         $output->writeln(sprintf(
@@ -74,6 +110,7 @@ class SchemaLoadCommand extends Command
         ));
 
         $schemaManager = $connection->getSchemaManager();
+
         $fromSchema = $schemaManager->createSchema();
 
         $comparator = new Comparator();
