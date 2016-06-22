@@ -57,8 +57,8 @@ class SchemaLoadCommand extends Command {
         $url = $input->getArgument('url');
         $filename  = $input->getArgument('filename');
         $apply = $input->getOption('apply');
-        
-        
+
+
         $scheme = parse_url($url, PHP_URL_SCHEME);
         $user = parse_url($url, PHP_URL_USER);
         $pass = parse_url($url, PHP_URL_PASS);
@@ -80,14 +80,14 @@ class SchemaLoadCommand extends Command {
         } catch (\Exception $e) {
             throw new RuntimeException("Can't connect to server with provided address and credentials");
         }
-        
+
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $dbname . "'");
         if (!$stmt->fetchColumn()) {
-            $output->writeln("Creating database");
+            $output->writeln("<info>Creating database</info>");
             $stmt = $pdo->query("CREATE DATABASE " . $dbname . "");
         } else {
-            $output->writeln("Database exists...");
+            $output->writeln("<error>Database exists...</error>");
         }
 
         $loader = LoaderFactory::getInstance()->getLoader($filename);
@@ -99,12 +99,12 @@ class SchemaLoadCommand extends Command {
         $connectionParams = array(
             'url' => $dbmanager->getUrlByDatabaseName($url)
         );
-        
-        
+
+
         $connection = DriverManager::getConnection($connectionParams, $config);
 
         $output->writeln(sprintf(
-            'Loading file `%s` into database `%s`',
+            '<info>Loading file <comment>`%s`</comment> into database <comment>`%s`</comment></info>',
             $filename,
             $url
         ));
@@ -120,22 +120,22 @@ class SchemaLoadCommand extends Command {
         $queries = $schemaDiff->toSaveSql($platform);
 
         if (!count($queries)) {
-            $output->writeln("No schema changes required");
+            $output->writeln("<info>No schema changes required</info>");
             return;
         }
 
         if ($apply) {
-            $output->writeln("APPLYING...");
+            $output->writeln("<info>APPLYING...</info>");
             foreach ($queries as $query) {
                 $output->writeln(sprintf(
-                    'Running: %s',
+                    '<info>Running: <comment>%s</comment></info>',
                     $query
                 ));
 
                 $stmt = $connection->query($query);
             }
         } else {
-            $output->writeln("CHANGES: The following SQL statements need to be executed to synchronise the schema (use --apply)");
+            $output->writeln("<info>CHANGES: The following SQL statements need to be executed to synchronise the schema (use <comment>--apply</comment>)</info>");
 
             foreach ($queries as $query) {
                 $output->writeln($query);
