@@ -102,6 +102,7 @@ class SchemaLoadCommand extends Command {
 
 
         $connection = DriverManager::getConnection($connectionParams, $config);
+        $connection->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
 
         $output->writeln(sprintf(
             '<info>Loading file <comment>`%s`</comment> into database <comment>`%s`</comment></info>',
