@@ -59,9 +59,18 @@ class SchemaLoadCommand extends Command
 
         $dbmanager = new DatabaseManager();
         $databaseConfig = $dbmanager->getDatabaseConfig($url);
-        $dbname = $databaseConfig->getConnectionConfig('default')->getDatabaseName();
+        $config = $databaseConfig->getConnectionConfig('default');
+
+        $dsn = sprintf(
+            '%s:host=%s;port=%d',
+            $config->getDriver(),
+            $config->getHost(),
+            $config->getPort()
+        );
+
+        $dbname = $config->getDatabaseName();
         try {
-            $pdo = $dbmanager->getPdo($url);
+            $pdo = new PDO($dsn, $config->getUsername(), $config->getPassword());
         } catch (\Exception $e) {
             throw new RuntimeException("Can't connect to server with provided address and credentials");
         }
