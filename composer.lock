@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "97fe09cb352fc14bc1eca8c3ccc7c953",
+    "content-hash": "6c7ebc9a9a06c53f17603d3bad82c5d5",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -478,7 +478,7 @@
         },
         {
             "name": "linkorb/connector",
-            "version": "dev-master",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/linkorb/connector.git",
@@ -3193,9 +3193,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "linkorb/connector": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
