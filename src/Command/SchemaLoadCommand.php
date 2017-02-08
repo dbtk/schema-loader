@@ -6,7 +6,6 @@ use DbTk\SchemaLoader\Loader\LoaderFactory;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Comparator;
-use LinkORB\Component\DatabaseManager\DatabaseManager;
 use PDO;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
@@ -14,6 +13,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Connector\Connector;
 
 /**
  * @author Joost Faassen <j.faassen@linkorb.com>
@@ -57,43 +57,28 @@ class SchemaLoadCommand extends Command
         $filename = $input->getArgument('filename');
         $apply = $input->getOption('apply');
 
-        $dbmanager = new DatabaseManager();
-        $databaseConfig = $dbmanager->getDatabaseConfig($url);
-        $config = $databaseConfig->getConnectionConfig('default');
-
-        $dsn = sprintf(
-            '%s:host=%s;port=%d',
-            $config->getDriver(),
-            $config->getHost(),
-            $config->getPort()
-        );
-
-        $dbname = $config->getDatabaseName();
-        try {
-            $pdo = new PDO($dsn, $config->getUsername(), $config->getPassword());
-        } catch (\Exception $e) {
-            throw new RuntimeException("Can't connect to server with provided address and credentials");
-        }
+        $connector = new Connector();
+        $config = $connector->getConfig($url);
+        $pdo = $connector->getPdo($config);
+        $dbname = $config->getName();
 
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $dbname . "'");
-        if (!$stmt->fetchColumn()) {
-            $output->writeln("<info>Creating database</info>");
-            $stmt = $pdo->query("CREATE DATABASE " . $dbname . "");
-        } else {
-            $output->writeln("<error>Database exists...</error>");
+        if ($config->getDriver() != 'sqlite') {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $dbname . "'");
+            if (!$stmt->fetchColumn()) {
+                $output->writeln("<info>Creating database</info>");
+                $stmt = $pdo->query("CREATE DATABASE " . $dbname . "");
+            } else {
+                $output->writeln("<error>Database exists...</error>");
+            }
         }
 
         $loader = LoaderFactory::getInstance()->getLoader($filename);
         $toSchema = $loader->loadSchema($filename);
 
-        $config = new Configuration();
+        $connectionParams = array('pdo' => $pdo);
 
-        $connectionParams = array(
-            'url' => $dbmanager->getUrlByDatabaseName($url),
-        );
-
-        $connection = DriverManager::getConnection($connectionParams, $config);
+        $connection = DriverManager::getConnection($connectionParams, new Configuration());
         $connection->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
 
         $output->writeln(sprintf(
