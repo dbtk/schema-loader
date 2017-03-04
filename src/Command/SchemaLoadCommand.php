@@ -59,19 +59,23 @@ class SchemaLoadCommand extends Command
 
         $connector = new Connector();
         $config = $connector->getConfig($url);
-        $pdo = $connector->getPdo($config);
+        $serverPdo = $connector->getPdo($config, 'server');
         $dbname = $config->getName();
 
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        // Ensure the database (schema) exists on the server
+        $serverPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if ($config->getDriver() != 'sqlite') {
-            $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $dbname . "'");
+            $stmt = $serverPdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $dbname . "'");
             if (!$stmt->fetchColumn()) {
                 $output->writeln("<info>Creating database</info>");
-                $stmt = $pdo->query("CREATE DATABASE " . $dbname . "");
+                $stmt = $serverPdo->query("CREATE DATABASE " . $dbname . "");
             } else {
                 $output->writeln("<error>Database exists...</error>");
             }
         }
+
+        $pdo = $connector->getPdo($config, 'db');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $loader = LoaderFactory::getInstance()->getLoader($filename);
         $toSchema = $loader->loadSchema($filename);
