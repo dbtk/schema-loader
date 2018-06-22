@@ -2,12 +2,11 @@
 
 namespace DbTk\SchemaLoader\Loader;
 
-use DbTk\SchemaLoader\Exception\FileNotFoundException;
 use DbTk\SchemaLoader\Exception\UnsupportedFieldTypeException;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Types\Type;
 
 /**
  * @author Igor Mukhin <igor.mukhin@gmail.com>
@@ -15,15 +14,16 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 abstract class BaseLoader
 {
     protected $extraOptions = array(
-        'default'=>'typeaware',
-        'notnull'=>'boolean',
-        'length'=>'integer',
-        'precision'=>'integer',
-        'scale'=>'integer',
-        'fixed'=>'boolean',
-        'unsigned'=>'boolean',
-        'autoincrement'=>'boolean',
-        'comment'=>'string'
+        'default' => 'typeaware',
+        'notnull' => 'boolean',
+        'length' => 'integer',
+        'precision' => 'integer',
+        'scale' => 'integer',
+        'fixed' => 'boolean',
+        'unsigned' => 'boolean',
+        'autoincrement' => 'boolean',
+        'comment' => 'string',
+        'collation' => 'string',
     );
 
     /**
@@ -50,7 +50,12 @@ abstract class BaseLoader
         }
 
         $options = $this->getColumnExtraOptions($type, $columnNode);
-        return new Column((string)$columnNode['name'], Type::getType($type), $options);
+        $column = new Column((string) $columnNode['name'], Type::getType($type), $options);
+
+        if (($collation = (string) $columnNode['collation'])) {
+            $column->setPlatformOption('collation', $collation);
+        }
+        return $column;
     }
 
     /**
@@ -61,9 +66,9 @@ abstract class BaseLoader
     public function getColumnExtraOptions($type, $columnNode)
     {
         $options = array();
-        foreach ($this->extraOptions as $optionName=>$optionType) {
+        foreach ($this->extraOptions as $optionName => $optionType) {
             if (isset($columnNode[$optionName])) {
-                $options[$optionName] = $this->convertColumnOptionValue((string)$columnNode[$optionName], $type, $optionType);
+                $options[$optionName] = $this->convertColumnOptionValue((string) $columnNode[$optionName], $type, $optionType);
             }
         }
         return $options;
@@ -82,10 +87,10 @@ abstract class BaseLoader
                 return $optionValue === 'true' ? true : false;
 
             case 'integer':
-                return (int)$optionValue;
+                return (int) $optionValue;
 
             case 'string':
-                return (string)$optionValue;
+                return (string) $optionValue;
 
             case 'typeaware':
                 if ('null' == $optionValue) {
@@ -98,13 +103,13 @@ abstract class BaseLoader
                     case 'bigint':
                     case 'float':
                     case 'decimal':
-                        return (int)$optionValue;
+                        return (int) $optionValue;
 
                     case 'boolean':
                         return $optionValue === 'true' ? true : false;
 
                     default:
-                        return (string)$optionValue;
+                        return (string) $optionValue;
                 }
 
             default:
