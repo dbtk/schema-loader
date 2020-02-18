@@ -103,7 +103,7 @@ class SchemaLoadCommand extends Command
 
         if (!count($queries)) {
             $output->writeln("<info>No schema changes required</info>");
-            return;
+            return 0;
         }
 
         if ($apply) {
@@ -123,5 +123,6 @@ class SchemaLoadCommand extends Command
                 $output->writeln($query);
             }
         }
+         return 0;
     }
 }
